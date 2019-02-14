@@ -5,20 +5,36 @@
 
 Write-Host "Reading container list from file " $InputFileName
 $blobs = Get-Content $InputFileName | ConvertFrom-Json
+$SubscriptionId = ""
+if ($blobs -and $blobs.Count -gt 0)
+{
+    $SubscriptionId = $blobs[0].Susbcriptionid
+}
+else
+{
+    Write-Host "No disks detected in the input file"
+    return
+}
+$Subscription = Get-AzureRmSubscription -SubscriptionId $SubscriptionId
+if ($Subscription)
+{
+    Select-AzureRmSubscription -SubscriptionObject $Subscription
+}
+else
+{
+    Write-Host "Subscription does not exist or access to the subscription denied"
+    return
+}
 
 $vms = Get-AzureRmVM
 $VMMap = @{}
 $ConfigFileMap = @{}
 $ContainerMap = @{}
-$SubscriptionId = ""
+
 
 foreach ( $vm in $vms )
 {
     $VMID = $vm.ResourceGroupName + "\" + $vm.Name
-    if ($SubscriptionId -eq "")
-    {
-        $SubscriptionId = $vm.Id.Split('/')[2]
-    }
     Write-Host "query VM " $VMID
     $StorageProfile = $vm.StorageProfile
     $uristr = $StorageProfile.OsDisk.vhd.Uri
