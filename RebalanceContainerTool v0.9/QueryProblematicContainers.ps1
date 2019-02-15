@@ -10,6 +10,7 @@ if( $pcontainers.Count -gt 0 )
     {
         New-Item ($folderName) -ItemType Directory | Out-Null
     }
+
     foreach( $container in $pcontainers )
     {
         foreach( $disk in $container.Group )
@@ -44,7 +45,8 @@ if( $pcontainers.Count -gt 0 )
                 SubscriptionOwner = $Subscription.Owner
                 SubscriptionName = $Subscription.DisplayName
                 SubscriptionId = $key
-                VMCount = ($disks | group Acquisitionid).Count
+                ContainerCount = ($disks | group StorageAccount, Container).Name.Count
+                VMCount = ($disks | group Acquisitionid).Name.Count
                 DisksCount = $disks.Count
                 DiskConfigFile = $Subscription.Owner + " " + $key + ".txt"
             }
@@ -53,5 +55,5 @@ if( $pcontainers.Count -gt 0 )
     }
 }
 
-$resultfiles | select SubscriptionOwner, SubscriptionName, SubscriptionId, VMCount, DisksCount, DiskConfigFile | FT | Write-Output
+$resultfiles | select SubscriptionOwner, SubscriptionName, SubscriptionId, ContainerCount, VMCount, DisksCount, DiskConfigFile | FT | Write-Output
 Write-Host "Above subscriptions have problematic containers. Configuration files for each subscription generated under folder "$folderName". Please contact the subscription owner with the configuration file, and ask owners to run the analyze disk tool for each subscription to resolve the impacted VMs. And then run rebalance disk tool to distribute the container allocation for identified disks."
