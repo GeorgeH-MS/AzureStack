@@ -6,7 +6,7 @@ $Files = Get-ChildItem $InputFolder -Recurse -Include *.json
 
 $ErrorFiles = @()
 $ExceptionMap = @{}
-$ReportFileName = "ScanResult.txt"
+$ReportFileName = "ScanTemplatesResult.txt"
 $ErrorActionPreference = "SilentlyContinue"
 if ($Files)
 {
@@ -63,7 +63,7 @@ else
     Add-Content $ReportFileName "No unmanaged disks detected"
 }
 
-if ($ExceptionMap)
+if ($ExceptionMap -and $ExceptionMap.Keys.Count -gt 0)
 {
     Write-Host "Found JSON file error, please check the detailed error in " $ReportFileName
     Add-Content $ReportFileName ("`r`rFound JSON error in following templates:")
