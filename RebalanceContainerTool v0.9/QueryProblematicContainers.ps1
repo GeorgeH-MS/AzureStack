@@ -1,7 +1,21 @@
-$farm = Get-AzsStorageFarm
-$disks = ( Get-AzsStorageAcquisition -FarmName $farm.name | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
-$pcontainers = $disks | group Susbcriptionid, StorageAccount, Container | where Count -gt 1
+﻿$farm = Get-AzsStorageFarm
 
+$dcount = 0
+$umcount = 0
+
+$disks = Get-AzsStorageAcquisition -FarmName $farm.name
+if ($disks -and ($disks.count -gt 0))
+{
+    $dcount = $disks.count
+}
+$umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+if ($umdisks -and ($umdisks.count -gt 0))
+{
+    $umcount = $umdisks.count
+}
+$pcontainers = $umdisks | group Susbcriptionid, StorageAccount, Container | where Count -gt 1
+
+$fdcount = 0
 if( $pcontainers.Count -gt 0 )
 {
     $SubscriptionMap = @{}
@@ -34,26 +48,28 @@ if( $pcontainers.Count -gt 0 )
         if (-not ($Subscription.RoutingResourceManagerType -eq "Admin"))
         {
             $OutputFileName = $folderName + "\" + $Subscription.Owner + " " + $key + ".txt"
-            $Disks = @()
+            $ODisks = @()
             foreach($key1 in $SubscriptionMap[$key].Keys)
             {
-                $Disks += $SubscriptionMap[$key][$key1]
+                $ODisks += $SubscriptionMap[$key][$key1]
             }
-            $Disks | ConvertTo-Json | Out-File $OutputFileName
+            $ODisks | ConvertTo-Json | Out-File $OutputFileName
         
             $result = New-Object PSObject -Property @{
                 SubscriptionOwner = $Subscription.Owner
                 SubscriptionName = $Subscription.DisplayName
                 SubscriptionId = $key
-                ContainerCount = ($disks | group StorageAccount, Container).Name.Count
-                VMCount = ($disks | group Acquisitionid).Name.Count
-                DisksCount = $disks.Count
+                ContainerCount = ($ODisks | group StorageAccount, Container).Name.Count
+                VMCount = ($ODisks | group Acquisitionid).Name.Count
+                DisksCount = $ODisks.Count
                 DiskConfigFile = $Subscription.Owner + " " + $key + ".txt"
             }
             $resultfiles += $result
+            $fdcount += $ODisks.Count
         }
     }
 }
 
+Write-Host "You have" $dcount "disks in your Azure Stack," $umcount "of which are unmanaged disks. There are" $fdcount "unmanaged disks are badly placed."
 $resultfiles | select SubscriptionOwner, SubscriptionName, SubscriptionId, ContainerCount, VMCount, DisksCount, DiskConfigFile | FT | Write-Output
-Write-Host "Above subscriptions have problematic containers. Configuration files for each subscription generated under folder "$folderName". Please contact the subscription owner with the configuration file, and ask owners to run the analyze disk tool for each subscription to resolve the impacted VMs. And then run rebalance disk tool to distribute the container allocation for identified disks."
+Write-Host "Above subscriptions have problematic containers. Configuration files for each subscription generated under folder"$folderName". Please contact the subscription owner with the configuration file, and ask owners to run the analyze disk tool for each subscription to resolve the impacted VMs. And then run rebalance disk tool to distribute the container allocation for identified disks."
