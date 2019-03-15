@@ -1,4 +1,9 @@
-﻿Param(
+# Written by George Han, PM
+# Copyright (C) 2019 Microsoft Corporation
+# MIT License
+# 03/2019
+
+Param(
   [string]$InputFolder
 )
 
