@@ -1,14 +1,28 @@
-﻿$farm = Get-AzsStorageFarm
+Param(
+  [string]$VolumeIndex
+)
+
+$farm = Get-AzsStorageFarm
 
 $dcount = 0
 $umcount = 0
 
-$disks = Get-AzsStorageAcquisition -FarmName $farm.name
+if ($VolumeIndex)
+{
+    $disks = Get-AzsStorageAcquisition -FarmName $farm.name | where {$_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')}
+} else {
+    $disks = Get-AzsStorageAcquisition -FarmName $farm.name
+}
 if ($disks -and ($disks.count -gt 0))
 {
     $dcount = $disks.count
 }
-$umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+if ($VolumeIndex)
+{
+    $umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where {$_.Storageaccount -notlike 'md-*' -and $_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')} | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+} else {
+    $umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+}
 if ($umdisks -and ($umdisks.count -gt 0))
 {
     $umcount = $umdisks.count
@@ -70,6 +84,14 @@ if( $pcontainers.Count -gt 0 )
     }
 }
 
-Write-Host "You have" $dcount "disks in your Azure Stack," $umcount "of which are unmanaged disks. There are" $fdcount "unmanaged disks are badly placed."
+if ($VolumeIndex)
+{
+    $umcount = " volume " + $VolumeIndex + ", " + $umcount
+} else
+{
+    $umcount = ", " + $umcount
+}
+
+Write-Host ("You have "+$dcount+" disks in your Azure Stack"+$umcount+" of which are unmanaged disks. There are "+$fdcount+" unmanaged disks are badly placed.")
 $resultfiles | select SubscriptionOwner, SubscriptionName, SubscriptionId, ContainerCount, VMCount, DisksCount, DiskConfigFile | FT | Write-Output
 Write-Host "Above subscriptions have problematic containers. Configuration files for each subscription generated under folder"$folderName". Please contact the subscription owner with the configuration file, and ask owners to run the analyze disk tool for each subscription to resolve the impacted VMs. And then run rebalance disk tool to distribute the container allocation for identified disks."
