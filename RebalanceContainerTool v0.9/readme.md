@@ -8,7 +8,9 @@ This tool include two parts:
 Detail action steps:
 ----
 1. Login Admin PowerShell session with cloud operator account
-2. Run QueryProblematicContainers.ps1, the output files would be placed in the "output_{farm name}" folder. Each tenant subscription would have a corresponding file summary the problematic containers belongs to it. The output file named with {subscription owner}+{subscription ID}
+2. Run QueryProblematicContainers.ps1, the output files would be placed in the "output_{farm name}" folder. If you want to check the disks placed in specific volume, you could add parameter VolumeIndex (optional) with the volume ID like:
+.\QueryProblematicContainers.ps1 -VolumeIndex 3
+Each tenant subscription would have a corresponding file summary the problematic containers belongs to it. The output file named with {subscription owner}+{subscription ID}
 3. Send the output file in step 2 to tenant subscription owner
 4. Tenant subscirption owner login Tenant PowerShell session
 5. Run AnalyzeDisk.ps1 -InputFileName {inputfile}. The output would be placed in the folder "subscription_{subscription id}". The Analyze_Report summary the virtual machines which have disks placed in the problematic containers. The rest files are the data disk configuration of the impacted VMs (each file map to one particular VM).
