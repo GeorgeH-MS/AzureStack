@@ -48,7 +48,7 @@ foreach( $disk in $odisks )
    $uri = [system.uri] $uristr
    $srccname = $uri.Segments[1].split("/")[0]
    $srcfname = $uri.Segments[2]
-   $dstcname = $srcfname.split(".")[0]
+   $dstcname = $srcfname.split(".")[0].ToLower()
    Write-Host "Creating container " $dstcname
    New-AzureStorageContainer -Context $ctx -Name $dstcname
    Write-Host "Copying blob " $srcfname
@@ -67,7 +67,7 @@ foreach( $disk in $odisks )
    $uri = [system.uri] $uristr
    $srccname = $uri.Segments[1].split("/")[0]
    $srcfname = $uri.Segments[2]
-   $dstcname = $srcfname.split(".")[0]
+   $dstcname = $srcfname.split(".")[0].ToLower()
    $diskpath = $uri.scheme + "://" + $uri.Host + "/" + $dstcname + "/" + $srcfname
    write-host "Attaching disk " $diskpath
    $vmupdate = Add-AzureRmVMDataDisk -VM $vm -Name $disk.Name -VhdUri $diskpath -CreateOption Attach -Lun $disk.Lun -DiskSizeInGB $disk.DiskSizeGB  
