@@ -2,30 +2,66 @@ Param(
   [string]$VolumeIndex
 )
 
-$farm = Get-AzsStorageFarm
+$version = (Get-AzsUpdate | Where-Object {$_.State -eq 'Installed'} | Sort-Object version -Descending)[0].Version
+
+if ($version)
+{
+    $version = $version.Split(".")[1]
+}
+
+if ($version -gt 1910)
+{
+    $farm = ''
+} else {
+    $farm = Get-AzsStorageFarm
+}
 
 $dcount = 0
 $umcount = 0
 
-if ($VolumeIndex)
+if ($version -gt 1910)
 {
-    $disks = Get-AzsStorageAcquisition -FarmName $farm.name | where {$_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')}
+    if ($VolumeIndex)
+    {
+        $disks = (Get-AzsStorageAcquisition).value | where {$_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')}
+    } else {
+        $disks = (Get-AzsStorageAcquisition).value
+    }
+    if ($disks -and ($disks.count -gt 0))
+    {
+        $dcount = $disks.count
+    }
+    if ($VolumeIndex)
+    {
+        $umdisks = ((Get-AzsStorageAcquisition).value | where {$_.Storageaccount -notlike 'md-*' -and $_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')} | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+    } else {
+        $umdisks = ((Get-AzsStorageAcquisition).value | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+    }
+    if ($umdisks -and ($umdisks.count -gt 0))
+    {
+        $umcount = $umdisks.count
+    }
 } else {
-    $disks = Get-AzsStorageAcquisition -FarmName $farm.name
-}
-if ($disks -and ($disks.count -gt 0))
-{
-    $dcount = $disks.count
-}
-if ($VolumeIndex)
-{
-    $umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where {$_.Storageaccount -notlike 'md-*' -and $_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')} | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
-} else {
-    $umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
-}
-if ($umdisks -and ($umdisks.count -gt 0))
-{
-    $umcount = $umdisks.count
+    if ($VolumeIndex)
+    {
+        $disks = Get-AzsStorageAcquisition -FarmName $farm.name | where {$_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')}
+    } else {
+        $disks = Get-AzsStorageAcquisition -FarmName $farm.name
+    }
+    if ($disks -and ($disks.count -gt 0))
+    {
+        $dcount = $disks.count
+    }
+    if ($VolumeIndex)
+    {
+        $umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where {$_.Storageaccount -notlike 'md-*' -and $_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')} | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+    } else {
+        $umdisks = (Get-AzsStorageAcquisition -FarmName $farm.name | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+    }
+    if ($umdisks -and ($umdisks.count -gt 0))
+    {
+        $umcount = $umdisks.count
+    }
 }
 $pcontainers = $umdisks | group Susbcriptionid, StorageAccount, Container | where Count -gt 1
 
