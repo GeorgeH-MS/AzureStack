@@ -6,6 +6,8 @@ This tool is used to generate dashboard jsons showing volumes performance used o
 ### Example
 - default json save to spedified location  
 `.\Create-AzSStorageDashboard.ps1 -timeGrain "PT15M" -outputLocation '.' `
+- data of capacity related metric
+`.\Create-AzSStorageDashboard.ps1 -viewCapacity $true`
 - data of last week with 1 hour interval  
 `.\Create-AzSStorageDashboard.ps1 -duration "P7D" -timeGrain "PT1H"`
 - date from 4/1 to 4/8 with 1hr interval  
