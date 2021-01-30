@@ -23,9 +23,9 @@ if ($version -gt 1910)
 {
     if ($VolumeIndex)
     {
-        $disks = (Get-AzsStorageAcquisition).value | where {$_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')}
+        $disks = Get-AzsStorageAcquisition | where {$_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')}
     } else {
-        $disks = (Get-AzsStorageAcquisition).value
+        $disks = Get-AzsStorageAcquisition
     }
     if ($disks -and ($disks.count -gt 0))
     {
@@ -33,9 +33,9 @@ if ($version -gt 1910)
     }
     if ($VolumeIndex)
     {
-        $umdisks = ((Get-AzsStorageAcquisition).value | where {$_.Storageaccount -notlike 'md-*' -and $_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')} | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+        $umdisks = (Get-AzsStorageAcquisition | where {$_.Storageaccount -notlike 'md-*' -and $_.FilePath -like ('*SU1_ObjStore_'+$VolumeIndex+'*')} | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
     } else {
-        $umdisks = ((Get-AzsStorageAcquisition).value | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
+        $umdisks = (Get-AzsStorageAcquisition | where Storageaccount -notlike 'md-*' | select Susbcriptionid, Storageaccount, Container, Blob, Acquisitionid, FilePath )
     }
     if ($umdisks -and ($umdisks.count -gt 0))
     {
