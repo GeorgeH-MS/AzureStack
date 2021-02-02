@@ -9,11 +9,26 @@ if ($version)
     $version = $version.Split(".")[1]
 }
 
+[version]$AzureStackModuleVersion = (Get-Module -Name "AzureStack" -ListAvailable -ErrorAction SilentlyContinue).Version
+if(-not $AzureStackModuleVersion){
+    throw "This script requires the 'AzureStack' Addmin PowerShell Module, see https://docs.microsoft.com/en-us/powershell/azure/azure-stack/overview"
+}
+$1910AndAboveMinimumVversion = [version]'2.0.2'
+$Pre1910MaximumVersion = [version]'1.8.2'
+
+
 if ($version -gt 1910)
 {
+    if($AzureStackModuleVersion -lt $1910AndAboveMinimumVversion){
+        throw "For Azure Stack Hub 1910 and above, please update the 'AzureStack' module to version 2.0.2 or higher before continuing."
+    }
     $farm = ''
+
 } else {
-    $farm = Get-AzsStorageFarm
+    if($AzureStackModuleVersion -gt $Pre1910MaximumVersion){
+        throw "For Azure Stack Hub 1908 and below, this script has a dependency on 'AzureStack' module version 1.8.2 or below."
+    }
+    $farm = Get-AzsStorageFarm -ErrorAction Stop
 }
 
 $dcount = 0
