@@ -4,6 +4,11 @@
   [string]$InputFileName
 )
 
+$runAzureRM= Get-Command Get-AzureRmSubscription -ErrorAction SilentlyContinue
+if(-not $runAzureRM) {
+    Enable-AzureRmAlias -Scope CurrentUser
+}
+
 #!!! Issue warning  
 #!!! print out current configuraiton 
 #!!! print out new configuration
