@@ -10,6 +10,11 @@ Param(
 #!!! print out new configuration
 #!!! ask for confirmation 
 
+$runAzureRM= Get-Command Get-AzureRmSubscription -ErrorAction SilentlyContinue
+if(-not $runAzureRM) {
+    Enable-AzureRmAlias -Scope CurrentUser
+}
+
 Write-Host "Reading original configuration from file " $InputFileName
 $odisks = Get-Content $InputFileName | ConvertFrom-Json
 
