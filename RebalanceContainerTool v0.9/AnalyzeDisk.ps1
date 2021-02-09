@@ -2,6 +2,10 @@
   [string]$InputFileName
 )
 
+$runAzureRM= Get-Command Get-AzureRmSubscription -ErrorAction SilentlyContinue
+if(-not $runAzureRM) {
+    Enable-AzureRmAlias -Scope CurrentUser
+}
 
 Write-Host "Reading container list from file " $InputFileName
 $blobs = Get-Content $InputFileName | ConvertFrom-Json
